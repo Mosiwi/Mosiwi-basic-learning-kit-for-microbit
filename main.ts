@@ -4,15 +4,15 @@
 // Write the date: 2023-6-30
 
 const enum segment {
-    dp = 0b10000000,
-    g = 0b01000000,
-    f = 0b00100000,
-    e = 0b00010000,
-    d = 0b00001000,
-    c = 0b00000100,
-    b = 0b00000010,
-    a = 0b00000001,
-    ' ' = 0b00000000
+   dp = 0b01111111,
+    g = 0b10111111,
+    f = 0b11011111,
+    e = 0b11101111,
+    d = 0b11110111,
+    c = 0b11111011,
+    b = 0b11111101,
+    a = 0b11111110,
+  ' ' = 0b11111111
 }
 
 const enum OnOff {
@@ -126,15 +126,16 @@ namespace Mosiwi_basic_learning_kit {
     // Clear the screen or light up all leds.
     const GloReg = 0x1D;
 
-    function BC7278_spi_read_data(addr: number, dat: number) {
-        let data: number = (addr << 8) + dat;
-        data = pins.spiWrite(data);
+    function BC7278_spi_read_data(addr: number, dat: number): number {
+        let data: number = 0;
+        data = pins.spiWrite(addr);
+        data = ((data << 8) & 0xff00) + (pins.spiWrite(dat) & 0xff);
         return data;
     }
 
     function BC7278_spi_write_data(addr: number, dat: number) {
-        let data: number = (addr << 8) + dat;
-        pins.spiWrite(data);
+        pins.spiWrite(addr);
+        pins.spiWrite(dat);
     }
 
     ////////////////////////////////////////////
@@ -155,19 +156,19 @@ namespace Mosiwi_basic_learning_kit {
     }
 
     /////////////////////////////////////////////////////
-    //% block="Digital-Tube-Button_Init"
+    //% block="Digital-tube-button-init"
     //% group="Digital-Tube_Button" weight=7
     export function Digital_Tube_Button_Init() {
-        pins.spiPins(15, 14, 13);
+        pins.spiPins(DigitalPin.P15, DigitalPin.P14, DigitalPin.P13);
         pins.spiFormat(8, 3);
         pins.spiFrequency(60000);
     }
 
     ////////////////////////////////////////////
-    //% block="Button_Interrupt-pin"
+    //% block="Keypad-interrupt-output"
     //% group="Digital-Tube_Button" weight=6
     export function Buton_pin() {
-        return 11;
+        return EventBusSource.MICROBIT_ID_BUTTON_B;     //P11
     }
 
     ////////////////////////////////////////////
@@ -175,23 +176,21 @@ namespace Mosiwi_basic_learning_kit {
     // Read key value: 0 0 0 OK U D L R
     // x = 1, There's no button to press. 
     // x = 0, There are buttons to press.
-    //% block="Button"
+    //% block="Get-keypad-value"
     //% group="Digital-Tube_Button" weight=6
-    export function Read_button(DG: number, Dat: number) {
+    export function Read_button() {
         // 0xff: pseudoinstruction
         // Gets 16 key values
-        let AllKey: number = BC7278_spi_read_data(0xff, 0xff);
-        // Serial.println(AllKey, HEX);
+        let allKey: number = BC7278_spi_read_data(0xff, 0xff);
 
-        // After processing data, obtain the key values of S12-S15.
-        let keyValue: number = (~AllKey) >> 11;
-        // Serial.println(keyValue, HEX);
+        // After processing data, obtain the key values of S11-S15.
+        let keyValue: number = ((~allKey) >> 11) & 0x1f;
 
         return keyValue;
     }
 
     /////////////////////////////////////////////////////
-    //% block="Digital-Tube_Clear"
+    //% block="Digital-tube-clear"
     //% group="Digital-Tube_Button" weight=5
     export function Digital_Tube_Clear() {
         BC7278_spi_write_data(GloReg, 0xff);
@@ -199,56 +198,48 @@ namespace Mosiwi_basic_learning_kit {
 
     ////////////////////////////////////////////
     // display: 0-9999 or 0.0-999.9
-    //% block="Digital-Tube_Num: $num"
+    //% block="Digital-tube-num: $num"
     //% group="Digital-Tube_Button" weight=4
     export function DisplayNumber(num: number) {
         let dat: number = 0;
-        let i_f: number = 0;
         if (parseInt(num.toString()) == parseFloat(num.toString())) {  //integer
-            i_f = 0;
+            dat = num;
             SetDisplaySeg(0x17, 0);           // Turn off the decimal point.
         }
         else {                                                          //flaot
-            i_f = 1;
             dat = ~~(num * 10);
             SetDisplaySeg(0x17, 1);           // Turn on the decimal point.
         }
 
-        //Digital_Tube_Seg(0x17, 0);          // Turn off the decimal point.
-        if (dat / 1000 != 0) {
-            Digital_Tube_Num(0, dat / 1000);
-            Digital_Tube_Num(1, dat % 1000 / 100);
-            Digital_Tube_Num(2, dat % 100 / 10);
+        if(dat > 9999) return;
+
+        if (~~(dat / 1000) != 0) {
+            Digital_Tube_Num(0, ~~(dat / 1000));
+            Digital_Tube_Num(1, ~~(dat % 1000 / 100));
+            Digital_Tube_Num(2, ~~(dat % 100 / 10));
             Digital_Tube_Num(3, dat % 10);
             return;
         }
-        if (dat % 1000 / 100 != 0) {
+        if (~~(dat / 100) != 0) {
             Digital_Tube_Seg(0, 0xff);
-            Digital_Tube_Num(1, dat % 1000 / 100);
-            Digital_Tube_Num(2, dat % 100 / 10);
+            Digital_Tube_Num(1, ~~(dat / 100));
+            Digital_Tube_Num(2, ~~(dat % 100 / 10));
+            Digital_Tube_Num(3, dat % 10);
+            return;
+        }
+    
+        if (~~(dat / 10) != 0) {
+            Digital_Tube_Seg(0, 0xff);
+            Digital_Tube_Seg(1, 0xff);
+            Digital_Tube_Num(2, ~~(dat / 10));
             Digital_Tube_Num(3, dat % 10);
             return;
         }
 
-        if (i_f == 0) {
-            if (dat % 1000 / 10 != 0) {
-                Digital_Tube_Seg(0, 0xff);
-                Digital_Tube_Seg(1, 0xff);
-                Digital_Tube_Num(2, dat % 100 / 10);
-                Digital_Tube_Num(3, dat % 10);
-                return;
-            }
-            Digital_Tube_Seg(0, 0xff);
-            Digital_Tube_Seg(1, 0xff);
-            Digital_Tube_Seg(2, 0xff);
-            Digital_Tube_Num(3, dat % 10);
-        }
-        else {
-            Digital_Tube_Seg(0, 0xff);
-            Digital_Tube_Seg(1, 0xff);
-            Digital_Tube_Num(2, dat % 100 / 10);
-            Digital_Tube_Num(3, dat % 10);
-        }
+        Digital_Tube_Seg(0, 0xff);
+        Digital_Tube_Seg(1, 0xff);
+        Digital_Tube_Seg(2, 0xff);
+        Digital_Tube_Num(3, dat);
     }
 
     ////////////////////////////////////////////
@@ -271,7 +262,7 @@ namespace Mosiwi_basic_learning_kit {
     // Seg = xxxxxxxx = DP, G, F, E, D, C, B, A (x=0=on, x=1=off)
     //% block="Segment: $Seg"
     //% group="Digital-Tube_Button" weight=2
-    export function Segment(Seg: segment) {
+    export function Segment(Seg: segment): number {
         return Seg;
     }
 
@@ -302,20 +293,16 @@ namespace Mosiwi_basic_learning_kit {
 
     //////////////////////////////////////////////////////////////
     // Send 8-bit data to 74HC595.
-    // bitOrder: MSBFIRST or LSBFIRST
-    function ShiftOut(bitOrder: number, val: number) {
+    function ShiftOut(val: number) {
         let i: number;
+        let bit: number = 0x80;
         for (i = 0; i < 8; i++) {
-            if (bitOrder == LSBFIRST) {
-                pins.digitalWritePin(16, val & 1);
-                val >>= 1;
-            } else {
-                pins.digitalWritePin(16, val & 128);
-                val <<= 1;
-            }
-            pins.digitalWritePin(8, 1);
+            pins.digitalWritePin(DigitalPin.P16, val & bit);
+            bit = (bit >> 1) & 0xff;
+
+            pins.digitalWritePin(DigitalPin.P8, 1);
             control.waitMicros(10);
-            pins.digitalWritePin(8, 0);
+            pins.digitalWritePin(DigitalPin.P8, 0);
             control.waitMicros(10);
         }
     }
@@ -323,14 +310,14 @@ namespace Mosiwi_basic_learning_kit {
     ////////////////////////////////////////////
     //% block="$Onoff"
     //% group="Led" weight=2
-    export function On_Off(Onoff: OnOff) {
+    export function On_Off(Onoff: OnOff): number {
         return Onoff;
     }
 
     ////////////////////////////////////////////
     // LED
     //% block="Set $Pos led  $OnOff"
-    //% Pos.min=1 Pos.max=8 OnOff.min=0 OnOff.max=1
+    //% Pos.min=0 Pos.max=8 OnOff.min=0 OnOff.max=1
     //% group="Led" weight=1
     export function Set_Led(Pos: number, OnOff: number) {
         if (Pos > 8 || OnOff > 1) {
@@ -340,22 +327,28 @@ namespace Mosiwi_basic_learning_kit {
             ledData = ledData | (1 << (Pos - 1));
         }
         else {
-            ledData = ledData & (~(1 << (Pos - 1)));
+            ledData = ledData & ((~(1 << (Pos - 1))) & 0xff);
         }
         //ground latchPin and hold low for as long as you are transmitting
-        pins.digitalWritePin(9, 0);
-        ShiftOut(MSBFIRST, ledData);
+        pins.digitalWritePin(DigitalPin.P9, 0);
+        ShiftOut(ledData);
         //no longer needs to listen for information
-        pins.digitalWritePin(9, 1);
+        pins.digitalWritePin(DigitalPin.P9, 1);
     }
 
 
 
     ////////////////////////////////////////////
-    //% block="$Pin"
+    //% block="RGB-LED $Pin PWM $pwm"
+    //% pwm.min=0 pwm.max=1023
     //% group="RGB_Led" weight=1
-    export function RgbLed_pin(Pin: RgbLedPin) {
-        return Pin;
+    export function RgbLed_pin(Pin: RgbLedPin, pwm: number) {
+        if (Pin == 0)
+            pins.analogWritePin(AnalogPin.P0, pwm);
+        else if (Pin == 1)
+            pins.analogWritePin(AnalogPin.P1, pwm);
+        else if (Pin == 12)
+            pins.analogWritePin(AnalogPin.P12, pwm);
     }
 
 
@@ -480,10 +473,9 @@ namespace Mosiwi_basic_learning_kit {
     ////////////////////////////////////////////
     export function Ultrasonic_() {
         let t: number = 0;
-
-        pins.digitalWritePin(0, 1);
+        pins.digitalWritePin(DigitalPin.P0, 1);
         control.waitMicros(10);
-        pins.digitalWritePin(0, 0);
+        pins.digitalWritePin(DigitalPin.P0, 0);
 
         t = pins.pulseIn(DigitalPin.P1, PulseValue.High);
         return t / 29 / 2;
@@ -495,13 +487,13 @@ namespace Mosiwi_basic_learning_kit {
     //% block="I2c-read $sensor"
     //% group="I2c_read" weight=1
     ////////////////////////////////////////////
-    export function I2c_read(sensor: Sensor) {
+    export function I2c_read(sensor: Sensor): number {
         let address: number = 0x2d;
         let result: number = 0;
-        pins.i2cWriteNumber(address, sensor, NumberFormat.Int8LE, true);
-        result = pins.i2cReadNumber(address, NumberFormat.Int8LE, true);
-        result = result * 256 + pins.i2cReadNumber(address, NumberFormat.Int8LE, false);
-        return result;
+        pins.i2cWriteNumber(address, sensor, NumberFormat.UInt8LE, true);
+        result = pins.i2cReadNumber(address, NumberFormat.UInt16LE, false);
+        //result = result * 256 + pins.i2cReadNumber(address, NumberFormat.UInt8LE, false);
+        return result & 0xffff;
     }
 
 
@@ -513,12 +505,12 @@ namespace Mosiwi_basic_learning_kit {
     ////////////////////////////////////////////
     export function Fan_(_Veer: Veer, Speed: number) {
         if (_Veer == Veer.CW) {
-            pins.digitalWritePin(0, 0);
-            pins.analogWritePin(1, Speed)
+            pins.digitalWritePin(DigitalPin.P0, 0);
+            pins.analogWritePin(AnalogPin.P1, Speed)
         }
         else {
-            pins.analogWritePin(0, Speed)
-            pins.digitalWritePin(1, 0);
+            pins.analogWritePin(AnalogPin.P0, Speed)
+            pins.digitalWritePin(DigitalPin.P1, 0);
         }
     }
 
@@ -527,7 +519,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="Buzzer_Pin"
     //% group="Buzzer" weight=1
     export function Buzzer_pin() {
-        return 3;
+        return DigitalPin.P3;
     }
 
 
@@ -535,7 +527,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="Button_Pin"
     //% group="Button" weight=1
     export function Button_pin() {
-        return 5;
+        return DigitalPin.P5;
     }
 
 
