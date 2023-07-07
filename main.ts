@@ -1,8 +1,8 @@
-// Mosiwi-basic-learning-kit-for-microbit
-// author: jalen
-// github:https://github.com/mosiwi
-// Write the date: 2023-6-30
-
+/** Mosiwi-basic-learning-kit-for-microbit
+* author: jalen
+* github:https://github.com/mosiwi
+* Write the date: 2023-6-30
+*/
 const enum segment {
    dp = 0b01111111,
     g = 0b10111111,
@@ -14,29 +14,24 @@ const enum segment {
     a = 0b11111110,
   ' ' = 0b11111111
 }
-
 const enum OnOff {
     On = 1,
     Off = 0
 }
-
 const enum RgbLedPin {
     R_Pin = 0,
     G_Pin = 1,
     B_Pin = 12
 }
-
 const enum Humiture {
     Temperature = 0,
     Humidity = 1
 }
-
 const enum Sensor {
     IR_receiver = 0x04,
     Microphone = 0x00,
     Potentiometer = 0x02
 }
-
 const enum Veer {
     CW = 0,
     CCW = 1
@@ -72,26 +67,26 @@ namespace Mosiwi_basic_learning_kit {
     }
 
     function crc16(input: any[], len: number) {
-        let i: number = 0;
-        let a: number = 0;
-        let crc: number = 0x0000;
+        let j: number = 0;
+        let b: number = 0;
+        let crc2: number = 0x0000;
         while (len--) {
-            crc ^= input[a];
-            a++;
-            for (i = 0; i < 8; ++i) {
+            crc2 ^= input[b];
+            b++;
+            for (j = 0; j < 8; ++j) {
                 // Anti-order CRC16
                 // 1. X16+X15+X2+1 = 11000000000000101 		  
                 // 2. The calculation of reverse XOR is used : 11000000000000101 ---> 10100000000000011
                 // 3. The lowest bit of data is not processed : 10100000000000011 ---> 1010000000000001
                 //    (Move (discard) one bit if the lowest bit of both the data and the polynomial is 1)
                 // 4. 1010000000000001 = 0xA001
-                if (crc & 0x01)
-                    crc = (crc >> 1) ^ 0xA001;
+                if (crc2 & 0x01)
+                    crc2 = (crc2 >> 1) ^ 0xA001;
                 else
-                    crc = (crc >> 1);
+                    crc2 = (crc2 >> 1);
             }
         }
-        return crc;
+        return crc2;
     }
 
 
@@ -211,8 +206,7 @@ namespace Mosiwi_basic_learning_kit {
             SetDisplaySeg(0x17, 1);           // Turn on the decimal point.
         }
 
-        if(dat > 9999) return;
-
+        dat = dat % 10000;
         if (~~(dat / 1000) != 0) {
             Digital_Tube_Num(0, ~~(dat / 1000));
             Digital_Tube_Num(1, ~~(dat % 1000 / 100));
@@ -252,9 +246,9 @@ namespace Mosiwi_basic_learning_kit {
     export function Digital_Tube_Num(Position: number, Number: number) {
         if (Position > 3 || Number > 15)
             return;
-        let dat: number = 0;
-        dat = (Position << 4) | Number;
-        BC7278_spi_write_data(DecReg, dat);
+        let dat2: number = 0;
+        dat2 = (Position << 4) | Number;
+        BC7278_spi_write_data(DecReg, dat2);
     }
 
     ////////////////////////////////////////////
@@ -294,9 +288,9 @@ namespace Mosiwi_basic_learning_kit {
     //////////////////////////////////////////////////////////////
     // Send 8-bit data to 74HC595.
     function ShiftOut(val: number) {
-        let i: number;
+        let k: number;
         let bit: number = 0x80;
-        for (i = 0; i < 8; i++) {
+        for (k = 0; k < 8; k++) {
             pins.digitalWritePin(DigitalPin.P16, val & bit);
             bit = (bit >> 1) & 0xff;
 
@@ -365,35 +359,34 @@ namespace Mosiwi_basic_learning_kit {
 
     ////////////////////////////////////////////
     function SendAC() {
-        pins.i2cWriteNumber(aht20Addr, ac_, NumberFormat.Int8LE, true);
-        pins.i2cWriteNumber(aht20Addr, ac_d1, NumberFormat.Int8LE, true);
-        pins.i2cWriteNumber(aht20Addr, ac_d2, NumberFormat.Int8LE, false);
+        let buffer_reg = pins.createBuffer(3);
+        buffer_reg[0] = ac_;
+        buffer_reg[1] = ac_d1;
+        buffer_reg[2] = ac_d2;
+        pins.i2cWriteBuffer(aht20Addr, buffer_reg, false);
     }
 
     ////////////////////////////////////////////
     function Reset_REG(reg: number) {
-        let Byte = [0, 0, 0];
+        let buffer_reg = pins.createBuffer(3);
+        let buffer_read = pins.createBuffer(3);
 
-        pins.i2cWriteNumber(aht20Addr, reg, NumberFormat.Int8LE, true);
-        pins.i2cWriteNumber(aht20Addr, 0x00, NumberFormat.Int8LE, true);
-        pins.i2cWriteNumber(aht20Addr, 0x00, NumberFormat.Int8LE, false);
-
+        buffer_reg[0] = reg;
+        buffer_reg[1] = 0x00;
+        buffer_reg[2] = 0x00;
+        pins.i2cWriteBuffer(aht20Addr, buffer_reg, false);
         basic.pause(5);
-        Byte[0] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, true);
-        Byte[1] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, true);
-        Byte[2] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, false);
-
+        buffer_read = pins.i2cReadBuffer(aht20Addr, 3, false);
         basic.pause(10);
-        pins.i2cWriteNumber(aht20Addr, 0xb0 | reg, NumberFormat.Int8LE, true);
-        pins.i2cWriteNumber(aht20Addr, Byte[1], NumberFormat.Int8LE, true);
-        pins.i2cWriteNumber(aht20Addr, Byte[2], NumberFormat.Int8LE, false);
+        buffer_read[0] = buffer_read[0] | reg;
+        pins.i2cWriteBuffer(aht20Addr, buffer_read, false);
     }
 
     ////////////////////////////////////////////
-    function Read_Status() {
-        let stat;
-        stat = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, false);
-        return stat;
+    function Read_Status():number {
+        let buffer_stat = pins.createBuffer(1);
+        buffer_stat = pins.i2cReadBuffer(aht20Addr, 1, false);
+        return buffer_stat[0];
     }
 
     ////////////////////////////////////////////
@@ -411,7 +404,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="Read_humiture"
     //% group="Humiture" weight=2
     export function Read_CTdata() {
-        let Byte = [0, 0, 0, 0, 0, 0];
+        let buffer_read = pins.createBuffer(6);
         let RetuData = 0;
         let cnt = 0;
 
@@ -425,28 +418,23 @@ namespace Mosiwi_basic_learning_kit {
                 return false;
             }
         }
-        Byte[0] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, true);
-        Byte[1] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, true);
-        Byte[2] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, true);
-        Byte[3] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, true);
-        Byte[4] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, true);
-        Byte[5] = pins.i2cReadNumber(aht20Addr, NumberFormat.Int8LE, false);
+        buffer_read = pins.i2cReadBuffer(aht20Addr, 6, false);
 
-        // Byte[0]  //Status word: the state is 0x98, indicating busy state, and bit[7] is 1.  The state is 0x1C, or 0x0C, or 0x08 is idle, and bit[7] is 0.  
-        // Byte[1]  //humidity 
-        // Byte[2]  //humidity 
-        // Byte[3]  //humidity / temperature
-        // Byte[4]  //temperature 
-        // Byte[5]  //temperature 
-        RetuData = (RetuData | Byte[1]) << 8;
-        RetuData = (RetuData | Byte[2]) << 8;
-        RetuData = (RetuData | Byte[3]);
+        // buffer_read[0]  //Status word: the state is 0x98, indicating busy state, and bit[7] is 1.  The state is 0x1C, or 0x0C, or 0x08 is idle, and bit[7] is 0.
+        // buffer_read[1]  //humidity
+        // buffer_read[2]  //humidity
+        // buffer_read[3]  //humidity / temperature
+        // buffer_read[4]  //temperature
+        // buffer_read[5]  //temperature
+        RetuData = (RetuData | buffer_read[1]) << 8;
+        RetuData = (RetuData | buffer_read[2]) << 8;
+        RetuData = (RetuData | buffer_read[3]);
         RetuData = RetuData >> 4;
         ct[0] = RetuData * 100 / 1024 / 1024;           //humidity 
         RetuData = 0;
-        RetuData = (RetuData | Byte[3]) << 8;
-        RetuData = (RetuData | Byte[4]) << 8;
-        RetuData = (RetuData | Byte[5]);
+        RetuData = (RetuData | buffer_read[3]) << 8;
+        RetuData = (RetuData | buffer_read[4]) << 8;
+        RetuData = (RetuData | buffer_read[5]);
         RetuData = RetuData & 0xfffff;
         ct[1] = RetuData * 200 / 1024 / 1024 - 50;        //temperature 
         return true;
@@ -456,7 +444,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="$TH"
     //% group="Humiture" weight=1
     ////////////////////////////////////////////
-    export function Humiture_data(TH: Humiture) {
+    export function Humiture_data(TH: Humiture): number {
         if (TH == Humiture.Humidity) {
             return ct[0];
         }
@@ -541,18 +529,20 @@ namespace Mosiwi_basic_learning_kit {
     // the bus to come high, if it doesn't then it is broken or shorted
     // and we return a 0;
     // Returns 1 if a device asserted a presence pulse, 0 otherwise.
-    function OneWire_reset() {
+    function OneWire_reset(): number {
         let r: number;
         let retries: number = 125;
         // wait until the wire is high... just in case
         do {
             if (--retries == 0) return 0;
             control.waitMicros(2);
-        } while (!pins.digitalReadPin(DigitalPin.P7));
+        } while (!pins.digitalReadPin(DigitalPin.P2));
 
-        pins.digitalWritePin(DigitalPin.P7, 0);
-        control.waitMicros(550);
-        r = pins.digitalReadPin(DigitalPin.P7);
+        pins.digitalWritePin(DigitalPin.P2, 0);
+        control.waitMicros(480);
+        pins.digitalWritePin(DigitalPin.P2, 1);
+        control.waitMicros(60+10);
+        r = pins.digitalReadPin(DigitalPin.P2);
         control.waitMicros(410);
         return r;
     }
@@ -560,46 +550,52 @@ namespace Mosiwi_basic_learning_kit {
     // Write a bit. Port and bit is used to cut lookup time and provide
     // more certain timing.
     function OneWire_write_bit(v: number) {
-        if (v & 1) {   // write bit 1	
-            pins.digitalWritePin(DigitalPin.P7, 0);
-            control.waitMicros(10);
-            pins.digitalWritePin(DigitalPin.P7, 1);
-            control.waitMicros(55);
+        if ((v & 0x01) != 0) {   // write bit 1	
+            pins.digitalWritePin(DigitalPin.P2, 0);
+            control.waitMicros(10);  
+            pins.digitalWritePin(DigitalPin.P2, 1);
+            control.waitMicros(55);  
         } else {      // write bit 0
-            pins.digitalWritePin(DigitalPin.P7, 0);
-            control.waitMicros(65);
-            pins.digitalWritePin(DigitalPin.P7, 1);
-            control.waitMicros(5);
+            pins.digitalWritePin(DigitalPin.P2, 0);
+            control.waitMicros(65);  
+            pins.digitalWritePin(DigitalPin.P2, 1);
+            control.waitMicros(5);  
         }
     }
 
     // Read a bit. Port and bit is used to cut lookup time and provide
     // more certain timing.
-    function OneWire_read_bit() {
-        let r: number;
-        pins.digitalWritePin(DigitalPin.P7, 0);
-        control.waitMicros(13);
-        r = pins.digitalReadPin(DigitalPin.P7);
-        control.waitMicros(53);
-        return r;
+    function OneWire_read_bit(): number {
+        let s: number;
+        pins.digitalWritePin(DigitalPin.P2, 0);
+        control.waitMicros(5); 
+        pins.digitalReadPin(DigitalPin.P2);
+        control.waitMicros(10);
+        s = pins.digitalReadPin(DigitalPin.P2);
+        control.waitMicros(55); 
+        return s;
     }
 
     // Write a byte. 
-    function OneWire_write_byte(v: number) {
+    function OneWire_write_byte(dat: number) {
         let bitMask: number;
-        for (bitMask = 0x01; bitMask; bitMask <<= 1) {
-            OneWire_write_bit((bitMask & v) ? 1 : 0);
+        for (bitMask = 0x01; (bitMask & 0xff) < 0x80; bitMask <<= 1) {
+            //OneWire_write_bit((bitMask & v) ? 1 : 0);
+            if ((dat & bitMask) != 0)
+                OneWire_write_bit(1);
+            else
+                OneWire_write_bit(0);
         }
     }
 
     // Read a byte
-    function OneWire_read_byte() {
+    function OneWire_read_byte(): number {
         let bitMask: number;
-        let r: number = 0;
-        for (bitMask = 0x01; bitMask; bitMask <<= 1) {
-            if (OneWire_read_bit()) r |= bitMask;
+        let u: number = 0;
+        for (bitMask = 0x01; (bitMask & 0xff) < 0x80; bitMask <<= 1) {
+            if (OneWire_read_bit() != 0) u |= bitMask;
         }
-        return r;
+        return u;
     }
 
 
@@ -611,12 +607,13 @@ namespace Mosiwi_basic_learning_kit {
     export function EEPROM_search_ROM() {
         let id_bit: number = 0;
         let cmp_id_bit: number = 0;
-        let b: number = 0;
-        let i: number = 0;
+        let c: number = 0;
+        let l: number = 0;
 
-        for (i = 0; i < 8; i++)
-            ROM_NUM[i] = 0;
+        for (l = 0; l < 8; l++)
+            ROM_NUM[l] = 0;
 
+        //pins.setPull(DigitalPin.P2, PinPullMode.PullUp)
         // The device will be reset and found.
         // If the device is not found, return false.
         if (!OneWire_reset())
@@ -637,12 +634,12 @@ namespace Mosiwi_basic_learning_kit {
                     return false;
             }
             if (id_bit)
-                ROM_NUM[b / 8] |= 0x01 << (b % 8);
+                ROM_NUM[c / 8] |= (0x01 << (c % 8)) & 0xff;
 
             OneWire_write_bit(id_bit);
-            b++;
-        } while (b < 64);
-
+            c++;
+        } while (c < 64);
+        basic.showNumber(1);
         // A device was found but the serial number CRC is invalid.
         if (crc8(ROM_NUM, 7) != ROM_NUM[7])
             return false;
@@ -655,23 +652,23 @@ namespace Mosiwi_basic_learning_kit {
     }
 
     function EEPROM_check_crc16(input: any[], len: number, inverted_crc: any[]) {
-        let crc: number = ~crc16(input, len);
-        return (crc & 0xFF) == inverted_crc[0] && (crc >> 8) == inverted_crc[1];
+        let crc3: number = ~crc16(input, len);
+        return (crc3 & 0xFF) == inverted_crc[0] && (crc3 >> 8) == inverted_crc[1];
     }
 
     // slect ROM
     function EEPROM_slect_rom() {
-        let i: number = 0;
+        let m: number = 0;
         OneWire_reset();              // initial signal
         OneWire_write_byte(0x55);     // Match ROM
-        for (i = 0; i < 8; i++)
-            OneWire_write_byte(ROM_NUM[i]);
+        for (m = 0; m < 8; m++)
+            OneWire_write_byte(ROM_NUM[m]);
     }
 
     ////////////////////////////////////////////
-    //% block="Get_device"
+    //% block="Get_ROM"
     //% group="Storer" weight=5
-    export function Return_ROM() {
+    export function Return_ROM(): any {
         return ROM_NUM;
     }
 
@@ -700,14 +697,14 @@ namespace Mosiwi_basic_learning_kit {
         let verify: boolean = false;
         let crc16 = [0, 0];    // store value of crc
         let buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];       // data)+command = 12bytes
-        let i: number = 0;
+        let n: number = 0;
 
         // 1.write scratchpad --> Write data to the scratchpad
         buffer[0] = 0x0F;                   // store commands --> write scratchpad
         buffer[1] = address & 0x00ff;       // address
         buffer[2] = (address & 0xff00) >> 8;
-        for (i = 0; i < 8; i++) {
-            buffer[i + 3] = buf[i];         // 8 bytes data
+        for (n = 0; n < 8; n++) {
+            buffer[n + 3] = buf[n];         // 8 bytes data
         }
 
         EEPROM_slect_rom();                        // Match ROM
@@ -715,8 +712,8 @@ namespace Mosiwi_basic_learning_kit {
         OneWire_write_byte(buffer[1]);          // address
         OneWire_write_byte(buffer[2]);
 
-        for (i = 3; i < 11; i++)  // write 8 bytes data to eeprom
-            OneWire_write_byte(buffer[i]);
+        for (n = 3; n < 11; n++)  // write 8 bytes data to eeprom
+            OneWire_write_byte(buffer[n]);
 
         crc16[0] = OneWire_read_byte();         // Read CRC-16
         crc16[1] = OneWire_read_byte();
@@ -728,15 +725,15 @@ namespace Mosiwi_basic_learning_kit {
         EEPROM_slect_rom();                        // Match ROM
         OneWire_write_byte(buffer[0]);          // CMD ---> read scratchpad
 
-        for (i = 1; i < 4; i++)            //Read TA1(Low address), TA2(High address) and E/S
-            buffer[i] = OneWire_read_byte();
+        for (n = 1; n < 4; n++)            //Read TA1(Low address), TA2(High address) and E/S
+            buffer[n] = OneWire_read_byte();
 
         if (buffer[3] != 0x07)              // E/S must be equal to 0x07(8 bytes data)
             return false;
 
         if (verify) {
-            for (i = 4; i < 12; i++) //Read the data of scratchpad(8 bytes)
-                buffer[i] = OneWire_read_byte();
+            for (n = 4; n < 12; n++) //Read the data of scratchpad(8 bytes)
+                buffer[n] = OneWire_read_byte();
 
             crc16[0] = OneWire_read_byte();        // Read CRC-16
             crc16[1] = OneWire_read_byte();
@@ -747,8 +744,8 @@ namespace Mosiwi_basic_learning_kit {
         // 3.Copy scratchpad --> Write the data in the scratchpad to memory
         buffer[0] = 0x55;          // CMD --> Copy scratchpad
         EEPROM_slect_rom();               // Match ROM
-        for (i = 0; i < 4; i++)   //Send authorization code (TA1, TA2, E/S)
-            OneWire_write_byte(buffer[i]);
+        for (n = 0; n < 4; n++)   //Send authorization code (TA1, TA2, E/S)
+            OneWire_write_byte(buffer[n]);
 
         basic.pause(15);                 // t_PROG = 12.5ms worst case.
         let res: number = OneWire_read_byte();  // Read copy status, 0xAA = success
