@@ -32,9 +32,9 @@ const enum Humiture {
 }
 
 const enum Sensor {
-    IR_receiver = 0x00,
-    Microphone = 0x02,
-    Potentiometer = 0x04
+    IR_receiver = 0x04,
+    Microphone = 0x00,
+    Potentiometer = 0x02
 }
 
 const enum Veer {
@@ -489,10 +489,16 @@ namespace Mosiwi_basic_learning_kit {
     ////////////////////////////////////////////
     export function I2c_read(sensor: Sensor): number {
         let address: number = 0x2d;
+        let buffer_result = pins.createBuffer(2);
+        let buffer_reg = pins.createBuffer(1);
         let result: number = 0;
-        pins.i2cWriteNumber(address, sensor, NumberFormat.UInt8LE, true);
-        result = pins.i2cReadNumber(address, NumberFormat.UInt16LE, false);
-        //result = result * 256 + pins.i2cReadNumber(address, NumberFormat.UInt8LE, false);
+
+        buffer_reg[0] = sensor;
+        pins.i2cWriteBuffer(address, buffer_reg, true);
+        buffer_result = pins.i2cReadBuffer(address, 2, false);
+        result = buffer_result[0]*256 + buffer_result[1];
+        //pins.i2cWriteNumber(address, sensor, NumberFormat.UInt8LE, true);
+        //result = pins.i2cReadNumber(address, NumberFormat.UInt16LE, false);
         return result & 0xffff;
     }
 
