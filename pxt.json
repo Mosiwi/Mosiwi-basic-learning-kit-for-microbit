@@ -11,7 +11,7 @@
         "README.md",
         "main.blocks",
         "main.ts",
-	"ds2431.cpp"
+		"ds2431.cpp"
     ],
     "testFiles": [
         "test.ts"

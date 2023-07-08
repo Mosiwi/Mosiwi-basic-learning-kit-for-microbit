@@ -1,6 +1,6 @@
 #include "pxt.h"
 
-namespace  DS2431{
+namespace ds2431{
     
 MicroBitPin *pin = &uBit.io.P2;
 
