@@ -524,165 +524,15 @@ namespace Mosiwi_basic_learning_kit {
         return DigitalPin.P5;
     }
 
-
-    // Perform the onewire reset function.  We will wait up to 250uS for
-    // the bus to come high, if it doesn't then it is broken or shorted
-    // and we return a 0;
-    // Returns 1 if a device asserted a presence pulse, 0 otherwise.
-    function OneWire_reset(): number {
-        let r: number;
-        let retries: number = 125;
-        // wait until the wire is high... just in case
-        do {
-            if (--retries == 0) return 0;
-            control.waitMicros(2);
-        } while (!pins.digitalReadPin(DigitalPin.P2));
-
-        pins.digitalWritePin(DigitalPin.P2, 0);
-        control.waitMicros(480);
-        pins.digitalWritePin(DigitalPin.P2, 1);
-        control.waitMicros(60+10);
-        r = pins.digitalReadPin(DigitalPin.P2);
-        control.waitMicros(410);
-        return r;
-    }
-
-    // Write a bit. Port and bit is used to cut lookup time and provide
-    // more certain timing.
-    function OneWire_write_bit(v: number) {
-        if ((v & 0x01) != 0) {   // write bit 1	
-            pins.digitalWritePin(DigitalPin.P2, 0);
-            control.waitMicros(10);  
-            pins.digitalWritePin(DigitalPin.P2, 1);
-            control.waitMicros(55);  
-        } else {      // write bit 0
-            pins.digitalWritePin(DigitalPin.P2, 0);
-            control.waitMicros(65);  
-            pins.digitalWritePin(DigitalPin.P2, 1);
-            control.waitMicros(5);  
-        }
-    }
-
-    // Read a bit. Port and bit is used to cut lookup time and provide
-    // more certain timing.
-    function OneWire_read_bit(): number {
-        let s: number;
-        pins.digitalWritePin(DigitalPin.P2, 0);
-        control.waitMicros(5); 
-        pins.digitalReadPin(DigitalPin.P2);
-        control.waitMicros(10);
-        s = pins.digitalReadPin(DigitalPin.P2);
-        control.waitMicros(55); 
-        return s;
-    }
-
-    // Write a byte. 
-    function OneWire_write_byte(dat: number) {
-        let bitMask: number;
-        for (bitMask = 0x01; (bitMask & 0xff) < 0x80; bitMask <<= 1) {
-            //OneWire_write_bit((bitMask & v) ? 1 : 0);
-            if ((dat & bitMask) != 0)
-                OneWire_write_bit(1);
-            else
-                OneWire_write_bit(0);
-        }
-    }
-
-    // Read a byte
-    function OneWire_read_byte(): number {
-        let bitMask: number;
-        let u: number = 0;
-        for (bitMask = 0x01; (bitMask & 0xff) < 0x80; bitMask <<= 1) {
-            if (OneWire_read_bit() != 0) u |= bitMask;
-        }
-        return u;
-    }
-
-
-
-    let ROM_NUM = [0, 0, 0, 0, 0, 0, 0, 0];
-    ////////////////////////////////////////////
-    //% block="Search_device"
-    //% group="Storer" weight=6
-    export function EEPROM_search_ROM() {
-        let id_bit: number = 0;
-        let cmp_id_bit: number = 0;
-        let c: number = 0;
-        let l: number = 0;
-
-        for (l = 0; l < 8; l++)
-            ROM_NUM[l] = 0;
-
-        //pins.setPull(DigitalPin.P2, PinPullMode.PullUp)
-        // The device will be reset and found.
-        // If the device is not found, return false.
-        if (!OneWire_reset())
-            return false;
-
-        OneWire_write_byte(0xF0);     // Search ROM
-
-        do {
-            // read a bit and its complement
-            id_bit = OneWire_read_bit();
-            cmp_id_bit = OneWire_read_bit();
-            // check for no devices on 1-wire
-            if ((id_bit == 1) && (cmp_id_bit == 1)) {
-                return false;
-            } else {
-                if ((id_bit == 0) && (cmp_id_bit == 0))
-                    // Multiple devices found on 1-wire
-                    return false;
-            }
-            if (id_bit)
-                ROM_NUM[c / 8] |= (0x01 << (c % 8)) & 0xff;
-
-            OneWire_write_bit(id_bit);
-            c++;
-        } while (c < 64);
-        basic.showNumber(1);
-        // A device was found but the serial number CRC is invalid.
-        if (crc8(ROM_NUM, 7) != ROM_NUM[7])
-            return false;
-
-        // Family code error
-        if (ROM_NUM[0] != 0x2D)
-            return false;
-
-        return true;
-    }
-
-    function EEPROM_check_crc16(input: any[], len: number, inverted_crc: any[]) {
-        let crc3: number = ~crc16(input, len);
-        return (crc3 & 0xFF) == inverted_crc[0] && (crc3 >> 8) == inverted_crc[1];
-    }
-
-    // slect ROM
-    function EEPROM_slect_rom() {
-        let m: number = 0;
-        OneWire_reset();              // initial signal
-        OneWire_write_byte(0x55);     // Match ROM
-        for (m = 0; m < 8; m++)
-            OneWire_write_byte(ROM_NUM[m]);
-    }
-
-    ////////////////////////////////////////////
-    //% block="Get_ROM"
-    //% group="Storer" weight=5
-    export function Return_ROM(): any {
-        return ROM_NUM;
-    }
-
-    // Read a byte of data from eeprom.
+	/**
+     * Read a byte of data from eeprom.
+	 */
+	//% shim=DS2431::Read_byte_from_ds2431
     //% block="Read data from $address"
     //% address.min=0 address.max=16
     //% group="Storer" weight=4
     export function EEPROM_read(address: number) {
-        address = address * 8;
-        EEPROM_slect_rom();              // Match ROM
-        OneWire_write_byte(0xF0);     // read memory
-        OneWire_write_byte(address & 0x00ff);
-        OneWire_write_byte((address & 0xff00) >> 8);
-        return OneWire_read_byte();
+        return 0;
     }
 
     /**
@@ -690,68 +540,11 @@ namespace Mosiwi_basic_learning_kit {
      * @param buf --> An array of 8 members.
      * @param address
      */
+    //% shim=DS2431::Write_8bytes_to_ds2431
     //% block="Write array $buf to $address"
     //% address.min=0 address.max=15
     //% group="Storer" weight=3
     export function EEPROM_write(buf: any[], address: number) {
-        let verify: boolean = false;
-        let crc16 = [0, 0];    // store value of crc
-        let buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];       // data)+command = 12bytes
-        let n: number = 0;
-
-        // 1.write scratchpad --> Write data to the scratchpad
-        buffer[0] = 0x0F;                   // store commands --> write scratchpad
-        buffer[1] = address & 0x00ff;       // address
-        buffer[2] = (address & 0xff00) >> 8;
-        for (n = 0; n < 8; n++) {
-            buffer[n + 3] = buf[n];         // 8 bytes data
-        }
-
-        EEPROM_slect_rom();                        // Match ROM
-        OneWire_write_byte(buffer[0]);          // CMD ---> write scratchpad
-        OneWire_write_byte(buffer[1]);          // address
-        OneWire_write_byte(buffer[2]);
-
-        for (n = 3; n < 11; n++)  // write 8 bytes data to eeprom
-            OneWire_write_byte(buffer[n]);
-
-        crc16[0] = OneWire_read_byte();         // Read CRC-16
-        crc16[1] = OneWire_read_byte();
-        if (!EEPROM_check_crc16(buffer, 11, crc16))
-            verify = true; //CRC not matching, try to read again
-
-        // 2.read scratchpad --> Read data from the scratchpad
-        buffer[0] = 0xAA;                   // store commands --> read scratchpad
-        EEPROM_slect_rom();                        // Match ROM
-        OneWire_write_byte(buffer[0]);          // CMD ---> read scratchpad
-
-        for (n = 1; n < 4; n++)            //Read TA1(Low address), TA2(High address) and E/S
-            buffer[n] = OneWire_read_byte();
-
-        if (buffer[3] != 0x07)              // E/S must be equal to 0x07(8 bytes data)
-            return false;
-
-        if (verify) {
-            for (n = 4; n < 12; n++) //Read the data of scratchpad(8 bytes)
-                buffer[n] = OneWire_read_byte();
-
-            crc16[0] = OneWire_read_byte();        // Read CRC-16
-            crc16[1] = OneWire_read_byte();
-            if (!EEPROM_check_crc16(buffer, 12, crc16))  // CRC not matching.
-                return false;
-        }
-
-        // 3.Copy scratchpad --> Write the data in the scratchpad to memory
-        buffer[0] = 0x55;          // CMD --> Copy scratchpad
-        EEPROM_slect_rom();               // Match ROM
-        for (n = 0; n < 4; n++)   //Send authorization code (TA1, TA2, E/S)
-            OneWire_write_byte(buffer[n]);
-
-        basic.pause(15);                 // t_PROG = 12.5ms worst case.
-        let res: number = OneWire_read_byte();  // Read copy status, 0xAA = success
-        if (res != 0xAA) {
-            return false;
-        }
-        return true;
+        return false;
     }
 }
