@@ -96,6 +96,7 @@ uint16_t EEPROM::crc16(const uint8_t* input, uint16_t len){
 
   //%
 bool Write_8bytes_to_ds2431(uint8_t *buf, uint16_t address){
+	/*
 	bool verify = false;
 	uint8_t crc16[2];    // store value of crc
 	uint8_t buffer[12];  // data+command = 12bytes
@@ -153,7 +154,7 @@ bool Write_8bytes_to_ds2431(uint8_t *buf, uint16_t address){
 	uint8_t res = DS2431ReadByte();  // Read copy status, 0xAA = success
 	if (res != 0xAA) {         
 		return false;
-	}
+	}*/
 	return true;
 }
 
