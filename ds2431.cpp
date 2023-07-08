@@ -2,7 +2,7 @@
 
 namespace ds2431{
 	MicroBitPin *pin = &uBit.io.P2;
-	
+	/*
 	void sleep_us(int us){
 	  int lasttime,nowtime;
 	  lasttime  = system_timer_current_time_us();
@@ -96,21 +96,25 @@ namespace ds2431{
 		}
 		return crc;
 	}
-	
+	*/
 	
 	  //%
 	uint8_t Read_byte_from_ds2431(uint16_t address){
+		/*
 		DS2431Rest();
 		DS2431WiteByte(0xCC);     // Skip ROM
 		DS2431WiteByte(0xF0);     // read memory
 		DS2431WiteByte(lowByte(address));
 		DS2431WiteByte(highByte(address));	
 		return DS2431ReadByte();
+		*/
+		return 9;
 	}
 	
 
 	  //%
 	bool Write_8bytes_to_ds2431(uint8_t *buf, uint16_t address){
+		/*
 		bool verify = false;
 		uint8_t crc16[2];    // store value of crc
 		uint8_t buffer[12];  // data+command = 12bytes
@@ -169,6 +173,7 @@ namespace ds2431{
 		if (res != 0xAA) {         
 			return false;
 		}
+		*/
 		return true;
 	}
 	
