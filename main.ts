@@ -527,7 +527,7 @@ namespace Mosiwi_basic_learning_kit {
 	/**
      * Read a byte of data from eeprom.
 	 */
-
+	//% shim=ds2431::Read_byte_from_ds2431
     //% block="Read data from $address"
     //% address.min=0 address.max=16
     //% group="Storer" weight=4
@@ -540,7 +540,7 @@ namespace Mosiwi_basic_learning_kit {
      * @param buf --> An array of 8 members.
      * @param address
      */
-
+    //% shim=ds2431::Write_8bytes_to_ds2431
     //% block="Write array $buf to $address"
     //% address.min=0 address.max=15
     //% group="Storer" weight=3
