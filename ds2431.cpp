@@ -61,7 +61,6 @@ namespace ds2431{
 	uint8_t DS2431ReadByte(void){
 		uint8_t i; 
 		uint8_t data = 0;
-		uint8_t bit = 0x01;
 
 		for(i=0;i<8;i++){
 			data |= DS2431ReadBit() << i;
