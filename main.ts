@@ -544,6 +544,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="Write $buf to memory $address address"
     //% address.min=0 address.max=15
     //% group="Storer" weight=3
+	//% inlineInputMode=inline
     export function EEPROM_write(buf: number[], address: number) {
         return false;
     }
