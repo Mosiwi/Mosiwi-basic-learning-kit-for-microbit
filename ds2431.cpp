@@ -113,7 +113,7 @@ namespace ds2431{
 
 	  //%
 	bool Write_8bytes_to_ds2431(uint8_t *buf, uint16_t address){
-		
+		/*
 		bool verify = false;
 		uint8_t crc16[2];    // store value of crc
 		uint8_t buffer[12];  // data+command = 12bytes
@@ -126,7 +126,7 @@ namespace ds2431{
 		if(buf[0] == 99 && buf[1] == 99 && buf[2] == 99)
 			return true;
 		else
-			return false;
+			return false;*/
 		/*
 		DS2431Rest();                       // start
 		DS2431WiteByte(0xCC);               // CMD ---> Skip ROM	
@@ -175,9 +175,9 @@ namespace ds2431{
 		uint8_t res = DS2431ReadByte();  // Read copy status, 0xAA = success
 		if (res != 0xAA) {         
 			return false;
-		}
+		}*/
 		
-		return true;*/
+		return true;
 	}
 	
 }
