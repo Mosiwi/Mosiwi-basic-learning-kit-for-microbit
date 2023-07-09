@@ -541,7 +541,7 @@ namespace Mosiwi_basic_learning_kit {
      * @param address
      */
     //% shim=ds2431::Write_8bytes_to_ds2431
-    //% block="Write $dat2,$dat3,$dat4,$dat5,$dat6,$dat7,$dat8 to memory $address address"
+    //% block="Write $dat1$dat2$dat3$dat4$dat5$dat6$dat7$dat8 to memory $address address"
     //% address.min=0 address.max=15
     //% group="Storer" weight=3
 	//% inlineInputMode=inline
