@@ -4,20 +4,20 @@ namespace ds2431{
 	MicroBitPin *pin = &uBit.io.P2;
 	
 	void sleep_us(int us){
-	  int lasttime,nowtime;
-	  lasttime  = system_timer_current_time_us();
-	  nowtime = system_timer_current_time_us();
-	  while((nowtime - lasttime) < us){
+		int lasttime,nowtime;
+		lasttime  = system_timer_current_time_us();
 		nowtime = system_timer_current_time_us();
-	  }
+		while((nowtime - lasttime) < us){
+			nowtime = system_timer_current_time_us();
+		}
 	}
 	
 
 	void DS2431Rest(void){
-	  pin->setDigitalValue(0);
-	  sleep_us(750);
-	  pin->setDigitalValue(1);
-	  sleep_us(15);
+		pin->setDigitalValue(0);
+		sleep_us(550);
+		pin->setDigitalValue(1);
+		sleep_us(410);
 	}
 	
 	
@@ -27,15 +27,15 @@ namespace ds2431{
 		_data=data&0x01;
 		data>>=1;
 		if(_data){
-		  pin->setDigitalValue(0);
-		  sleep_us(2);
-		  pin->setDigitalValue(1);
-		  sleep_us(60);
+			pin->setDigitalValue(0);
+			sleep_us(2);
+			pin->setDigitalValue(1);
+			sleep_us(60);
 		}else{
-		  pin->setDigitalValue(0);
-		  sleep_us(60);
-		  pin->setDigitalValue(1);
-		  sleep_us(2);
+			pin->setDigitalValue(0);
+			sleep_us(60);
+			pin->setDigitalValue(1);
+			sleep_us(2);
 		}
 		//sleep_us(2);
 	  }
@@ -43,16 +43,17 @@ namespace ds2431{
 	
 
 	int DS2431ReadBit(void){
-	  int data;
-	  pin->setDigitalValue(0);
-	  sleep_us(2);
-	  pin->setDigitalValue(1);
-	  sleep_us(5);
-	  if(pin->getDigitalValue()){
-		  data = 1;
-	  }else data = 0;
-	  sleep_us(60);
-	  return data;
+		int data;
+		pin->setDigitalValue(0);
+		sleep_us(2);
+		pin->setDigitalValue(1);
+		sleep_us(10);
+		if(pin->getDigitalValue())
+			data = 1;
+		else 
+			data = 0;
+		sleep_us(55);
+		return data;
 	}  
 	
 	
@@ -94,10 +95,7 @@ namespace ds2431{
 	
 	bool check_crc16(uint8_t *input, uint16_t len, uint8_t *inverted_crc){
 		uint16_t crc = ~crc16(input, len);
-		if(((crc & 0xFF) == inverted_crc[0]) && ((crc >> 8) == inverted_crc[1]))
-			return true;
-		else
-			return false;
+		return ((crc & 0xFF) == inverted_crc[0]) && ((crc >> 8) == inverted_crc[1])
 	}
 	
 	
