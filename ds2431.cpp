@@ -70,13 +70,13 @@ namespace ds2431{
 	}
 	
 	
-	bool EEPROM::check_crc16(const uint8_t* input, uint16_t len, const uint8_t* inverted_crc){
+	bool check_crc16(const uint8_t* input, uint16_t len, const uint8_t* inverted_crc){
 		uint16_t crc = ~crc16(input, len);
 		return (crc & 0xFF) == inverted_crc[0] && (crc >> 8) == inverted_crc[1];
 	}
 	
 	
-	uint16_t EEPROM::crc16(const uint8_t* input, uint16_t len){
+	uint16_t crc16(const uint8_t* input, uint16_t len){
 		uint8_t i;
 		uint16_t crc = 0x0000;   
 		while(len--){
