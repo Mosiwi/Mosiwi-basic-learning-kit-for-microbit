@@ -46,7 +46,7 @@ namespace ds2431{
 	uint8_t DS2431ReadBit(void){
 		uint8_t data;
 		pin->setDigitalValue(0);
-		sleep_us(5);
+		sleep_us(2);
 		pin->setDigitalValue(1);
 		pin->getDigitalValue();
 		sleep_us(5);
