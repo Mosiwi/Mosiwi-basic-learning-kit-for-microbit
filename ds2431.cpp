@@ -15,10 +15,10 @@ namespace ds2431{
 
 	void DS2431Rest(void){
 		pin->setDigitalValue(0);
-		sleep_us(550);
+		sleep_us(750);
 		pin->setDigitalValue(1);
 		pin->getDigitalValue();
-		sleep_us(410);
+		sleep_us(15);
 	}
 	
 	
@@ -129,7 +129,7 @@ namespace ds2431{
 		DS2431WiteByte(buffer[0]);          // CMD ---> write scratchpad   
 		DS2431WiteByte(buffer[1]);          // address
 		DS2431WiteByte(buffer[2]);	
-		
+		buffer[0] =  99;
 		for (uint8_t i = 3 ; i < 11; i++)  // write 8 bytes data to eeprom
 			DS2431WiteByte(buffer[i]);
 		
