@@ -49,7 +49,7 @@ namespace ds2431{
 		sleep_us(5);
 		pin->setDigitalValue(1);
 		pin->getDigitalValue();
-		sleep_us(10);
+		sleep_us(5);
 		if(pin->getDigitalValue())
 			data = 1;
 		else 
