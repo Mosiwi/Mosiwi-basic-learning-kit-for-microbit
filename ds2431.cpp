@@ -112,7 +112,7 @@ namespace ds2431{
 	
 
 	  //%
-	bool Write_8bytes_to_ds2431(uint8_t *buf, uint16_t address){
+	bool Write_8bytes_to_ds2431(uint8_t dat1, uint8_t dat2, uint8_t dat3, uint8_t dat4, uint8_t dat5, uint8_t dat6, uint8_t dat7, uint8_t dat8, uint16_t address){
 		/*
 		bool verify = false;
 		uint8_t crc16[2];    // store value of crc
@@ -123,7 +123,7 @@ namespace ds2431{
 		buffer[1] = address & 0xff;         // address
 		buffer[2] = (address >> 8) & 0xff;
 		//memcpy(&buffer[3], buf, 8);*/         // 8 bytes data
-		if(buf[0] == 99 && buf[1] == 99 && buf[2] == 99)
+		if(dat1 == 99 )
 			return true;
 		else
 			return false;

@@ -541,11 +541,11 @@ namespace Mosiwi_basic_learning_kit {
      * @param address
      */
     //% shim=ds2431::Write_8bytes_to_ds2431
-    //% block="Write $buf to memory $address address"
+    //% block="Write $dat2,$dat3,$dat4,$dat5,$dat6,$dat7,$dat8 to memory $address address"
     //% address.min=0 address.max=15
     //% group="Storer" weight=3
 	//% inlineInputMode=inline
-    export function EEPROM_write(buf: number[], address: number) {
+    export function EEPROM_write(dat1: number, dat2: number, dat3: number, dat4: number, dat5: number, dat6: number, dat7: number, dat8: number, address: number) {
         return false;
     }
 }
