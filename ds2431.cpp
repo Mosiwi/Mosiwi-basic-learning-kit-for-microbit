@@ -122,7 +122,7 @@ namespace ds2431{
 		buffer[0] = 0x0F;                   // store commands --> write scratchpad
 		buffer[1] = address & 0xff;         // address
 		buffer[2] = (address >> 8) & 0xff;
-		memcpy(&buffer[3], buf, 8);         // 8 bytes data
+		//memcpy(&buffer[3], buf, 8);         // 8 bytes data
 		if(buf[0] == 99 && buf[1] == 99 && buf[2] == 99)
 			return true;
 		else
