@@ -47,7 +47,7 @@ namespace ds2431{
 		pin->setDigitalValue(0);
 		sleep_us(2);
 		//pin->setDigitalValue(1);
-		fakeRead = pin->getDigitalValue()
+		fakeRead = pin->getDigitalValue();
 		sleep_us(10);
 		if(pin->getDigitalValue())
 			data = 1;
