@@ -114,7 +114,6 @@ namespace ds2431{
 
 	  //%
 	bool Write_8bytes_to_ds2431(uint8_t *buf, uint16_t address){
-		/*
 		bool verify = false;
 		uint8_t crc16[2];    // store value of crc
 		uint8_t buffer[12];  // data+command = 12bytes
@@ -173,7 +172,7 @@ namespace ds2431{
 		if (res != 0xAA) {         
 			return false;
 		}
-		*/
+		
 		return true;
 	}
 	
