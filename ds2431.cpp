@@ -103,8 +103,8 @@ namespace ds2431{
 		DS2431Rest();
 		DS2431WiteByte(0xCC);     // Skip ROM
 		DS2431WiteByte(0xF0);     // read memory
-		DS2431WiteByte(lowByte(address));
-		DS2431WiteByte(highByte(address));	
+		DS2431WiteByte(address & 0xff);
+		DS2431WiteByte((address >> 8) & 0xff);	
 		return DS2431ReadByte();
 	}
 	
