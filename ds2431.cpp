@@ -112,7 +112,7 @@ namespace ds2431{
 	
 
 	  //%
-	bool Write_8bytes_to_ds2431(uint8_t *buf, uint16_t address){
+	bool Write_8bytes_to_ds2431(uint8_t buf[8], uint16_t address){
 		/*
 		bool verify = false;
 		uint8_t crc16[2];    // store value of crc
