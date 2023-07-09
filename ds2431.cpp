@@ -123,11 +123,11 @@ namespace ds2431{
 		buffer[0] = 0x0F;                   // store commands --> write scratchpad
 		buffer[1] = address & 0xff;         // address
 		buffer[2] = (address >> 8) & 0xff;
-		//memcpy(&buffer[3], buf, 8);         // 8 bytes data
+		memcpy(&buffer[3], buf, 8);         // 8 bytes data
 		
 		DS2431Rest();                       // start
 		DS2431WiteByte(0xCC);               // CMD ---> Skip ROM	
-		DS2431WiteByte([0]);                 // CMD ---> write scratchpad   
+		DS2431WiteByte(buffer[0]);          // CMD ---> write scratchpad   
 		DS2431WiteByte(buffer[1]);          // address
 		DS2431WiteByte(buffer[2]);	
 		
