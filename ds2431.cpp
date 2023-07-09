@@ -69,7 +69,7 @@ namespace ds2431{
 		return data;
 	}
 	
-	/*
+	
 	bool EEPROM::check_crc16(const uint8_t* input, uint16_t len, const uint8_t* inverted_crc){
 		uint16_t crc = ~crc16(input, len);
 		return (crc & 0xFF) == inverted_crc[0] && (crc >> 8) == inverted_crc[1];
@@ -96,7 +96,7 @@ namespace ds2431{
 		}
 		return crc;
 	}
-	*/
+	
 	
 	  //%
 	uint8_t Read_byte_from_ds2431(uint16_t address){
