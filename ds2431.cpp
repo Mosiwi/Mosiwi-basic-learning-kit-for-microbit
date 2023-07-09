@@ -100,15 +100,12 @@ namespace ds2431{
 	
 	  //%
 	uint8_t Read_byte_from_ds2431(uint16_t address){
-		/*
 		DS2431Rest();
 		DS2431WiteByte(0xCC);     // Skip ROM
 		DS2431WiteByte(0xF0);     // read memory
 		DS2431WiteByte(lowByte(address));
 		DS2431WiteByte(highByte(address));	
 		return DS2431ReadByte();
-		*/
-		return 9;
 	}
 	
 
