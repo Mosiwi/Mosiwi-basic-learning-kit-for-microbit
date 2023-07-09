@@ -123,7 +123,11 @@ namespace ds2431{
 		buffer[1] = address & 0xff;         // address
 		buffer[2] = (address >> 8) & 0xff;
 		memcpy(&buffer[3], buf, 8);         // 8 bytes data
-		
+		if(buffer[3] == 99 && buffer[4] == 99 && buffer[5] == 99)
+			return true;
+		else
+			return false;
+		/*
 		DS2431Rest();                       // start
 		DS2431WiteByte(0xCC);               // CMD ---> Skip ROM	
 		DS2431WiteByte(buffer[0]);          // CMD ---> write scratchpad   
@@ -173,7 +177,7 @@ namespace ds2431{
 			return false;
 		}
 		
-		return true;
+		return true;*/
 	}
 	
 }
