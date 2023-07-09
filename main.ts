@@ -544,7 +544,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="Write array $buf to $address"
     //% address.min=0 address.max=15
     //% group="Storer" weight=3
-    export function EEPROM_write(buf: any[], address: number) {
+    export function EEPROM_write(buf: number[], address: number) {
         return false;
     }
 }
