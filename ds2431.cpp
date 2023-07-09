@@ -114,7 +114,7 @@ namespace ds2431{
 
 	  //%
 	bool Write_8bytes_to_ds2431(uint8_t *buf, uint16_t address){
-		/*
+		
 		bool verify = false;
 		uint8_t crc16[2];    // store value of crc
 		uint8_t buffer[12];  // data+command = 12bytes
@@ -123,7 +123,7 @@ namespace ds2431{
 		buffer[0] = 0x0F;                   // store commands --> write scratchpad
 		buffer[1] = address & 0xff;         // address
 		buffer[2] = (address >> 8) & 0xff;
-		memcpy(&buffer[3], buf, 8);         // 8 bytes data
+		//memcpy(&buffer[3], buf, 8);         // 8 bytes data
 		
 		DS2431Rest();                       // start
 		DS2431WiteByte(0xCC);               // CMD ---> Skip ROM	
@@ -173,7 +173,7 @@ namespace ds2431{
 		if (res != 0xAA) {         
 			return false;
 		}
-		*/
+		
 		return true;
 	}
 	
