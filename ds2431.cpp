@@ -95,7 +95,7 @@ namespace ds2431{
 	
 	bool check_crc16(uint8_t *input, uint16_t len, uint8_t *inverted_crc){
 		uint16_t crc = ~crc16(input, len);
-		return ((crc & 0xFF) == inverted_crc[0]) && ((crc >> 8) == inverted_crc[1])
+		return (crc & 0xFF) == inverted_crc[0] && (crc >> 8) == inverted_crc[1];
 	}
 	
 	
