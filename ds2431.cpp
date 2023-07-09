@@ -42,11 +42,12 @@ namespace ds2431{
 	}
 	
 
-	int DS2431ReadBit(void){
-		int data;
+	uint8_t DS2431ReadBit(void){
+		uint8_t fakeRead, data;
 		pin->setDigitalValue(0);
 		sleep_us(2);
-		pin->setDigitalValue(1);
+		//pin->setDigitalValue(1);
+		fakeRead = pin->getDigitalValue()
 		sleep_us(10);
 		if(pin->getDigitalValue())
 			data = 1;
@@ -58,14 +59,13 @@ namespace ds2431{
 	
 	
 	uint8_t DS2431ReadByte(void){
-		int i,j,data=0;
+		uint8_t i; 
+		uint8_t data = 0;
+		uint8_t bit = 0x01;
+
 		for(i=0;i<8;i++){
-			j = DS2431ReadBit();
-			//uBit.serial.printf("%d",j);
-			sleep_us(2);
-			data = (j<<7)|(data>>1);
+			data |= DS2431ReadBit() << i;
 		}
-		sleep_us(2);
 		//uBit.serial.printf("\r\n");
 		return data;
 	}
