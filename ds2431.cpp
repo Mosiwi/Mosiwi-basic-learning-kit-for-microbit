@@ -129,7 +129,7 @@ namespace ds2431{
 		DS2431WiteByte(buffer[0]);          // CMD ---> write scratchpad   
 		DS2431WiteByte(buffer[1]);          // address
 		DS2431WiteByte(buffer[2]);	
-		buffer[0] =  99;
+		buffer[3] =  99;
 		for (uint8_t i = 3 ; i < 11; i++)  // write 8 bytes data to eeprom
 			DS2431WiteByte(buffer[i]);
 		
