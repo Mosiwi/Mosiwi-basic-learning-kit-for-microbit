@@ -1,8 +1,9 @@
 #include "pxt.h"
+//#include "pxtbase.h"
 
 namespace ds2431{
 	MicroBitPin *pin = &uBit.io.P2;
-	
+    /*	
 	void sleep_us(int us){
 		int lasttime,nowtime;
 		lasttime  = system_timer_current_time_us();
@@ -11,50 +12,48 @@ namespace ds2431{
 			nowtime = system_timer_current_time_us();
 		}
 	}
-	
+    */
 
 	void DS2431Rest(void){
 		pin->setDigitalValue(0);
-		sleep_us(750);
+		sleep_us(550);
 		pin->setDigitalValue(1);
 		pin->getDigitalValue();
-		sleep_us(15);
+		sleep_us(410);
 	}
 	
 	
 	void DS2431WiteByte(uint8_t data){
 	  int _data=0,i;
 	  for(i=0;i<8;i++){
-		_data=data&0x01;
+		_data=data & 0x01;
 		data>>=1;
 		if(_data){
 			pin->setDigitalValue(0);
-			sleep_us(2);
+			sleep_us(7);
 			pin->setDigitalValue(1);
-			sleep_us(60);
+			sleep_us(58);
 		}else{
 			pin->setDigitalValue(0);
-			sleep_us(60);
+			sleep_us(65);
 			pin->setDigitalValue(1);
-			sleep_us(2);
+			sleep_us(5);
 		}
-		//sleep_us(2);
 	  }
+      pin->getDigitalValue();
+      sleep_us(50);
 	}
 	
 
 	uint8_t DS2431ReadBit(void){
 		uint8_t data;
 		pin->setDigitalValue(0);
-		sleep_us(2);
+		sleep_us(3);
 		pin->setDigitalValue(1);
 		pin->getDigitalValue();
-		sleep_us(5);
-		if(pin->getDigitalValue())
-			data = 1;
-		else 
-			data = 0;
-		sleep_us(50);
+		sleep_us(10);
+        data = pin->getDigitalValue();
+		sleep_us(53);
 		return data;
 	}  
 	
@@ -62,12 +61,12 @@ namespace ds2431{
 	uint8_t DS2431ReadByte(void){
 		uint8_t i; 
 		uint8_t data = 0;
-
 		for(i=0;i<8;i++){
 			if(DS2431ReadBit())
 				data |= 1 << i;
 		}
 		//uBit.serial.printf("\r\n");
+        sleep_us(50);
 		return data;
 	}
 	
@@ -101,40 +100,36 @@ namespace ds2431{
 	
 	
 	  //%
-	uint8_t Read_byte_from_ds2431(uint16_t address){
+	uint8_t Read_byte_from_ds2431(uint8_t address){
 		DS2431Rest();
-		DS2431WiteByte(0xCC);     // Skip ROM
-		DS2431WiteByte(0xF0);     // read memory
-		DS2431WiteByte(address & 0xff);
-		DS2431WiteByte((address >> 8) & 0xff);	
+		DS2431WiteByte(0xCC);       // Skip ROM
+		DS2431WiteByte(0xF0);       // read memory
+		DS2431WiteByte(address*8);  // L_address
+		DS2431WiteByte(0);          // H_address	
 		return DS2431ReadByte();
 	}
 	
 
 	  //%
-	bool Write_8bytes_to_ds2431(uint8_t dat1, uint8_t dat2, uint8_t dat3, uint8_t dat4, uint8_t dat5, uint8_t dat6, uint8_t dat7, uint8_t dat8, uint16_t address){
-		/*
+	bool Write_8bytes_to_ds2431(uint8_t dat, uint8_t addr){	
 		bool verify = false;
-		uint8_t crc16[2];    // store value of crc
-		uint8_t buffer[12];  // data+command = 12bytes
+		uint8_t crc16[2];                   // store value of crc
+		uint8_t buffer[12] = {0,0,0,0,0,0,0,0,0,0,0,0};  // data+command = 12bytes
 		
 		// 1.write scratchpad --> Write data to the scratchpad
 		buffer[0] = 0x0F;                   // store commands --> write scratchpad
-		buffer[1] = address & 0xff;         // address
-		buffer[2] = (address >> 8) & 0xff;
-		//memcpy(&buffer[3], buf, 8);*/         // 8 bytes data
-		if(dat1 == 99 )
-			return true;
-		else
-			return false;
-		/*
+		buffer[1] = addr;                   // L_address
+		buffer[2] = 0;                      // H_address
+        buffer[3] = dat;
+		//memcpy(&buffer[3], buf, 8);       // 8 bytes data
+
 		DS2431Rest();                       // start
 		DS2431WiteByte(0xCC);               // CMD ---> Skip ROM	
 		DS2431WiteByte(buffer[0]);          // CMD ---> write scratchpad   
-		DS2431WiteByte(buffer[1]);          // address
-		DS2431WiteByte(buffer[2]);	
+		DS2431WiteByte(buffer[1]);          // L_address
+		DS2431WiteByte(buffer[2]);	        // H_address
 
-		for (uint8_t i = 3 ; i < 11; i++)  // write 8 bytes data to eeprom
+		for (uint8_t i = 3 ; i < 11; i++)   // write 8 bytes data to eeprom
 			DS2431WiteByte(buffer[i]);
 		
 		crc16[0] = DS2431ReadByte();         // Read CRC-16
@@ -153,7 +148,7 @@ namespace ds2431{
 
 		if (buffer[3] != 0x07)              // E/S must be equal to 0x07(8 bytes data)
 		  return false;
-
+        
 		if(verify){
 			for (uint8_t i = 4 ; i < 12 ; i++) //Read the data of scratchpad(8 bytes)
 				buffer[i] = DS2431ReadByte();
@@ -171,14 +166,17 @@ namespace ds2431{
 		for(uint8_t i=0;i<4;i++)   //Send authorization code (TA1, TA2, E/S)
 			DS2431WiteByte(buffer[i]);
 
-		fiber_sleep(15);;                // t_PROG = 12.5ms worst case.
+        sleep_ms(15);
+		//fiber_sleep(15);                 // t_PROG = 12.5ms worst case.
 		uint8_t res = DS2431ReadByte();  // Read copy status, 0xAA = success
 		if (res != 0xAA) {         
 			return false;
 		}
 		
-		return true;*/
+		return true;
 	}
-	
+
 }
+	
+
 	

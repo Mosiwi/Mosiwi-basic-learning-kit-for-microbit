@@ -1,8 +1,3 @@
-/** Mosiwi-basic-learning-kit-for-microbit
-* author: jalen
-* github:https://github.com/mosiwi
-* Write the date: 2023-6-30
-*/
 const enum segment {
    dp = 0b01111111,
     g = 0b10111111,
@@ -368,13 +363,13 @@ namespace Mosiwi_basic_learning_kit {
 
     ////////////////////////////////////////////
     function Reset_REG(reg: number) {
-        let buffer_reg = pins.createBuffer(3);
+        let buffer_reg2 = pins.createBuffer(3);
         let buffer_read = pins.createBuffer(3);
 
-        buffer_reg[0] = reg;
-        buffer_reg[1] = 0x00;
-        buffer_reg[2] = 0x00;
-        pins.i2cWriteBuffer(aht20Addr, buffer_reg, false);
+        buffer_reg2[0] = reg;
+        buffer_reg2[1] = 0x00;
+        buffer_reg2[2] = 0x00;
+        pins.i2cWriteBuffer(aht20Addr, buffer_reg2, false);
         basic.pause(5);
         buffer_read = pins.i2cReadBuffer(aht20Addr, 3, false);
         basic.pause(10);
@@ -404,7 +399,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="Read_humiture"
     //% group="Humiture" weight=2
     export function Read_CTdata() {
-        let buffer_read = pins.createBuffer(6);
+        let buffer_read2 = pins.createBuffer(6);
         let RetuData = 0;
         let cnt = 0;
 
@@ -418,7 +413,7 @@ namespace Mosiwi_basic_learning_kit {
                 return false;
             }
         }
-        buffer_read = pins.i2cReadBuffer(aht20Addr, 6, false);
+        buffer_read2 = pins.i2cReadBuffer(aht20Addr, 6, false);
 
         // buffer_read[0]  //Status word: the state is 0x98, indicating busy state, and bit[7] is 1.  The state is 0x1C, or 0x0C, or 0x08 is idle, and bit[7] is 0.
         // buffer_read[1]  //humidity
@@ -426,15 +421,15 @@ namespace Mosiwi_basic_learning_kit {
         // buffer_read[3]  //humidity / temperature
         // buffer_read[4]  //temperature
         // buffer_read[5]  //temperature
-        RetuData = (RetuData | buffer_read[1]) << 8;
-        RetuData = (RetuData | buffer_read[2]) << 8;
-        RetuData = (RetuData | buffer_read[3]);
+        RetuData = (RetuData | buffer_read2[1]) << 8;
+        RetuData = (RetuData | buffer_read2[2]) << 8;
+        RetuData = (RetuData | buffer_read2[3]);
         RetuData = RetuData >> 4;
         ct[0] = RetuData * 100 / 1024 / 1024;           //humidity 
         RetuData = 0;
-        RetuData = (RetuData | buffer_read[3]) << 8;
-        RetuData = (RetuData | buffer_read[4]) << 8;
-        RetuData = (RetuData | buffer_read[5]);
+        RetuData = (RetuData | buffer_read2[3]) << 8;
+        RetuData = (RetuData | buffer_read2[4]) << 8;
+        RetuData = (RetuData | buffer_read2[5]);
         RetuData = RetuData & 0xfffff;
         ct[1] = RetuData * 200 / 1024 / 1024 - 50;        //temperature 
         return true;
@@ -478,11 +473,11 @@ namespace Mosiwi_basic_learning_kit {
     export function I2c_read(sensor: Sensor): number {
         let address: number = 0x2d;
         let buffer_result = pins.createBuffer(2);
-        let buffer_reg = pins.createBuffer(1);
+        let buffer_reg3 = pins.createBuffer(1);
         let result: number = 0;
 
-        buffer_reg[0] = sensor;
-        pins.i2cWriteBuffer(address, buffer_reg, true);
+        buffer_reg3[0] = sensor;
+        pins.i2cWriteBuffer(address, buffer_reg3, true);
         buffer_result = pins.i2cReadBuffer(address, 2, false);
         result = buffer_result[0]*256 + buffer_result[1];
         //pins.i2cWriteNumber(address, sensor, NumberFormat.UInt8LE, true);
@@ -528,24 +523,24 @@ namespace Mosiwi_basic_learning_kit {
      * Read a byte of data from eeprom.
 	 */
 	//% shim=ds2431::Read_byte_from_ds2431
-    //% block="Read data from $address"
-    //% address.min=0 address.max=16
+    //% block="Read data from $addr address"
+    //% addr.min=0 addr.max=16
     //% group="Storer" weight=4
-    export function EEPROM_read(address: number): number{
+    export function EEPROM_read(addr: number): number{
         return 0;
     }
 
     /**
-     * Write a 8-byte row, must write 8 bytes at a time.
-     * @param buf --> An array of 8 members.
-     * @param address
+     * @param dat --> 0-255.
+     * @param address --> 0-15
      */
     //% shim=ds2431::Write_8bytes_to_ds2431
-    //% block="Write $dat1|$dat2|$dat3|$dat4|$dat5|$dat6|$dat7|$dat8 to memory $address address"
-    //% address.min=0 address.max=15
+    //% block="Write $dat to memory $addr address"
+    //% dat.min=0 dat.max=255 addr.min=0 addr.max=15
     //% group="Storer" weight=3
 	//% inlineInputMode=inline
-    export function EEPROM_write(dat1: number, dat2: number, dat3: number, dat4: number, dat5: number, dat6: number, dat7: number, dat8: number, address: number) {
+    export function EEPROM_write(dat: number, addr: number) {
         return false;
     }
+
 }
