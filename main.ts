@@ -147,7 +147,7 @@ namespace Mosiwi_basic_learning_kit {
 
     /////////////////////////////////////////////////////
     //% block="Digital-tube-button-init"
-    //% group="Digital-Tube_Button" weight=7
+    //% group="Digital-Tube_Button" weight=8
     export function Digital_Tube_Button_Init() {
         pins.spiPins(DigitalPin.P15, DigitalPin.P14, DigitalPin.P13);
         pins.spiFormat(8, 3);
@@ -155,10 +155,10 @@ namespace Mosiwi_basic_learning_kit {
     }
 
     ////////////////////////////////////////////
-    //% block="Keypad-interrupt-output"
-    //% group="Digital-Tube_Button" weight=6
+    //% block="Keypad-ready-pin"
+    //% group="Digital-Tube_Button" weight=7
     export function Buton_pin() {
-        return EventBusSource.MICROBIT_ID_BUTTON_B;     //P11
+        return DigitalPin.P11;     //P11
     }
 
     ////////////////////////////////////////////
