@@ -35,55 +35,6 @@ const enum Veer {
 //% color="#3487FF" icon="\uf002" weight=15
 //% groups="['Display-Buttom', 'Led', 'RGB-Led', 'Humiture', 'Ultrasonic', 'I2c-read', 'Fan', 'Buzzer', 'Button', 'Storer']"
 namespace Mosiwi_basic_learning_kit {
-    // Compute a Dallas Semiconductor 8 bit CRC directly.
-    // this is much slower, but a little smaller, than the lookup table.
-    // https://www.analog.com/en/technical-articles/understanding-and-using-cyclic-redundancy-checks-with-maxim-1wire-and-ibutton-products.html
-    function crc8(addr: any[], len: number) {
-        let i: number = 0;
-        let a: number = 0;
-        let crc: number = 0;
-        while (len--) {
-            crc ^= addr[a];
-            a++;
-            for (i = 0; i < 8; ++i) {
-                // Anti-order CRC8
-                // 1. X8+X5+X4+1 = 100110001 		  
-                // 2. The calculation of reverse XOR is used : 100110001 ---> 100011001
-                // 3. The lowest bit of data is not processed : 100011001 ---> 10001100
-                //    (Move (discard) one bit if the lowest bit of both the data and the polynomial is 1)
-                // 4. 10001100 = 0x8C
-                if (crc & 0x01)
-                    crc = (crc >> 1) ^ 0x8C;
-                else
-                    crc = (crc >> 1);
-            }
-        }
-        return crc;
-    }
-
-    function crc16(input: any[], len: number) {
-        let j: number = 0;
-        let b: number = 0;
-        let crc2: number = 0x0000;
-        while (len--) {
-            crc2 ^= input[b];
-            b++;
-            for (j = 0; j < 8; ++j) {
-                // Anti-order CRC16
-                // 1. X16+X15+X2+1 = 11000000000000101 		  
-                // 2. The calculation of reverse XOR is used : 11000000000000101 ---> 10100000000000011
-                // 3. The lowest bit of data is not processed : 10100000000000011 ---> 1010000000000001
-                //    (Move (discard) one bit if the lowest bit of both the data and the polynomial is 1)
-                // 4. 1010000000000001 = 0xA001
-                if (crc2 & 0x01)
-                    crc2 = (crc2 >> 1) ^ 0xA001;
-                else
-                    crc2 = (crc2 >> 1);
-            }
-        }
-        return crc2;
-    }
-
 
     // They correspond to 4-bit digital tube and can control 8 digital sections of the code tube.
     // default = 0xff, bit: on = 0, off = 1
@@ -116,16 +67,41 @@ namespace Mosiwi_basic_learning_kit {
     // Clear the screen or light up all leds.
     const GloReg = 0x1D;
 
+    /**
+     * spi mode3, 16bit, MSBFIRST
+     */
+    function spiWrite(dat: number): number{ 
+        let r: number = 0x0000;
+        let i: number = 0;
+        let bit: number = 0x8000;
+        pins.digitalWritePin(DigitalPin.P13, 1);             //sck
+        for(i = 0; i < 16; i++){
+            pins.digitalWritePin(DigitalPin.P15, dat & bit); //mosi
+            pins.digitalWritePin(DigitalPin.P13, 0);         //sck
+            control.waitMicros(10);
+            pins.digitalWritePin(DigitalPin.P13, 1);         //sck
+            control.waitMicros(10);
+            if (pins.digitalReadPin(DigitalPin.P14)) {       //miso
+                r |= (0x0001 << (15 - i));
+            }
+            bit >>= 1;
+            if(i == 7){
+                control.waitMicros(15);
+            }
+        }
+        return r;
+    }
+
     function BC7278_spi_read_data(addr: number, dat: number): number {
-        let data: number = 0;
-        data = pins.spiWrite(addr);
-        data = ((data << 8) & 0xff00) + (pins.spiWrite(dat) & 0xff);
-        return data;
+        let r: number = 0;
+        let data: number = addr * 256 + dat;
+        r = spiWrite(data);
+        return r;
     }
 
     function BC7278_spi_write_data(addr: number, dat: number) {
-        pins.spiWrite(addr);
-        pins.spiWrite(dat);
+        let data: number = addr*256 + dat;
+        spiWrite(data);
     }
 
     ////////////////////////////////////////////
@@ -145,15 +121,6 @@ namespace Mosiwi_basic_learning_kit {
         BC7278_spi_write_data(SegAddReg, Seg);
     }
 
-    /////////////////////////////////////////////////////
-    //% block="Digital-tube-button-init"
-    //% group="Digital-Tube_Button" weight=8
-    export function Digital_Tube_Button_Init() {
-        pins.spiPins(DigitalPin.P15, DigitalPin.P14, DigitalPin.P13);
-        pins.spiFormat(8, 3);
-        pins.spiFrequency(60000);
-    }
-
     ////////////////////////////////////////////
     //% block="Keypad-ready-pin"
     //% group="Digital-Tube_Button" weight=7
@@ -168,14 +135,14 @@ namespace Mosiwi_basic_learning_kit {
     // x = 0, There are buttons to press.
     //% block="Get-keypad-value"
     //% group="Digital-Tube_Button" weight=6
-    export function Read_button() {
+    export function Read_button(): number{
         // 0xff: pseudoinstruction
         // Gets 16 key values
         let allKey: number = BC7278_spi_read_data(0xff, 0xff);
 
         // After processing data, obtain the key values of S11-S15.
-        let keyValue: number = ((~allKey) >> 11) & 0x1f;
-
+        let keyValue: number = (~(allKey >> 11)) & 0x1f;
+        basic.pause(28);
         return keyValue;
     }
 
