@@ -125,7 +125,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="Keypad-ready-pin"
     //% group="Digital-Tube_Button" weight=7
     export function Buton_pin() {
-        return DigitalPin.P11;     //P11
+        return pins.digitalReadPin(DigitalPin.P11);     //P11
     }
 
     ////////////////////////////////////////////
@@ -472,10 +472,11 @@ namespace Mosiwi_basic_learning_kit {
 
 
     ////////////////////////////////////////////
-    //% block="Buzzer_Pin"
+    //% block="Set buzzer volume $v"
+	//% v.min=0 v.max=1023
     //% group="Buzzer" weight=1
-    export function Buzzer_pin() {
-        return DigitalPin.P3;
+    export function Buzzer_pin(v: number) {
+        pins.analogWritePin(AnalogPin.P3, v)
     }
 
 
@@ -483,7 +484,7 @@ namespace Mosiwi_basic_learning_kit {
     //% block="Button_Pin"
     //% group="Button" weight=1
     export function Button_pin() {
-        return DigitalPin.P5;
+        return pins.digitalReadPin(DigitalPin.P5);
     }
 
 	/**
