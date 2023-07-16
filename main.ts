@@ -180,7 +180,7 @@ namespace Mosiwi_basic_learning_kit {
             return;
         }
         if (~~(dat / 100) != 0) {
-            Digital_Tube_Seg(0, 0xff);
+            Digital_Tube_Seg(0, 0x0);
             Digital_Tube_Num(1, ~~(dat / 100));
             Digital_Tube_Num(2, ~~(dat % 100 / 10));
             Digital_Tube_Num(3, dat % 10);
@@ -188,21 +188,21 @@ namespace Mosiwi_basic_learning_kit {
         }
     
         if (~~(dat / 10) != 0) {
-            Digital_Tube_Seg(0, 0xff);
-            Digital_Tube_Seg(1, 0xff);
+            Digital_Tube_Seg(0, 0x0);
+            Digital_Tube_Seg(1, 0x0);
             Digital_Tube_Num(2, ~~(dat / 10));
             Digital_Tube_Num(3, dat % 10);
             return;
         }
 		
 		if(ty == 0){
-			Digital_Tube_Seg(0, 0xff);
-			Digital_Tube_Seg(1, 0xff);
-			Digital_Tube_Seg(2, 0xff);
+			Digital_Tube_Seg(0, 0x0);
+			Digital_Tube_Seg(1, 0x0);
+			Digital_Tube_Seg(2, 0x0);
 			Digital_Tube_Num(3, dat);
 		}else{
-			Digital_Tube_Seg(0, 0xff);
-			Digital_Tube_Seg(1, 0xff);
+			Digital_Tube_Seg(0, 0x0);
+			Digital_Tube_Seg(1, 0x0);
 			Digital_Tube_Num(2, 0);
 			Digital_Tube_Num(3, dat);
 		}
