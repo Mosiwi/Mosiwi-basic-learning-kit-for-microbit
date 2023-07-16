@@ -1,13 +1,13 @@
 const enum segment {
-   dp = 0b01111111,
-    g = 0b10111111,
-    f = 0b11011111,
-    e = 0b11101111,
-    d = 0b11110111,
-    c = 0b11111011,
-    b = 0b11111101,
-    a = 0b11111110,
-  ' ' = 0b11111111
+   dp = 0b10000000,
+    g = 0b01000000,
+    f = 0b00100000,
+    e = 0b00010000,
+    d = 0b00001000,
+    c = 0b00000100,
+    b = 0b00000010,
+    a = 0b00000001,
+  ' ' = 0b00000000
 }
 const enum OnOff {
     On = 1,
@@ -113,11 +113,11 @@ namespace Mosiwi_basic_learning_kit {
     //  2    17h   16h  15h  14h  13h  12h  11h  10h
     //  3    1fh   1eh  1dh  1ch  1bh  1ah  19h  18h
     //  
-    // OnOff = 1 = on, OnOff = 0 = off
+    // OnOff = 0 = on, OnOff = 1 = off
     function SetDisplaySeg(Seg: number, OnOff: number) {
         if (OnOff != 0 && OnOff != 1)
             return;
-        Seg = ((~OnOff) << 7) + Seg;
+        Seg = (OnOff << 7) + Seg;
         BC7278_spi_write_data(SegAddReg, Seg);
     }
 
@@ -159,13 +159,16 @@ namespace Mosiwi_basic_learning_kit {
     //% group="Digital-Tube_Button" weight=4
     export function DisplayNumber(num: number) {
         let dat: number = 0;
+		let ty: number = 0;
         if (parseInt(num.toString()) == parseFloat(num.toString())) {  //integer
             dat = num;
-            SetDisplaySeg(0x17, 0);           // Turn off the decimal point.
+            SetDisplaySeg(0x17, 1);           // Turn off the decimal point.
+			ty = 0;
         }
         else {                                                          //flaot
             dat = ~~(num * 10);
-            SetDisplaySeg(0x17, 1);           // Turn on the decimal point.
+            SetDisplaySeg(0x17, 0);           // Turn on the decimal point.
+			ty = 1;
         }
 
         dat = dat % 10000;
@@ -191,11 +194,18 @@ namespace Mosiwi_basic_learning_kit {
             Digital_Tube_Num(3, dat % 10);
             return;
         }
-
-        Digital_Tube_Seg(0, 0xff);
-        Digital_Tube_Seg(1, 0xff);
-        Digital_Tube_Seg(2, 0xff);
-        Digital_Tube_Num(3, dat);
+		
+		if(ty == 0){
+			Digital_Tube_Seg(0, 0xff);
+			Digital_Tube_Seg(1, 0xff);
+			Digital_Tube_Seg(2, 0xff);
+			Digital_Tube_Num(3, dat);
+		}else{
+			Digital_Tube_Seg(0, 0xff);
+			Digital_Tube_Seg(1, 0xff);
+			Digital_Tube_Num(2, 0);
+			Digital_Tube_Num(3, dat);
+		}
     }
 
     ////////////////////////////////////////////
@@ -231,6 +241,7 @@ namespace Mosiwi_basic_learning_kit {
     //% group="Digital-Tube_Button" weight=1
     export function Digital_Tube_Seg(Position: number, Seg: number) {
         let addr: number = 0;
+		let seg = (~Seg) & 0xff;
         switch (Position) {
             case 0: addr = DisReg0; break;
             case 1: addr = DisReg1; break;
@@ -238,7 +249,7 @@ namespace Mosiwi_basic_learning_kit {
             case 3: addr = DisReg3; break;
             default: return;
         }
-        BC7278_spi_write_data(addr, Seg);
+        BC7278_spi_write_data(addr, seg);
     }
 
 
